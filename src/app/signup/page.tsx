@@ -1,25 +1,48 @@
 "use client";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { axios } from "axios";
+import axios from "axios";
+import { toast } from "react-hot-toast";
 
 
 export default function SignupPage(){
+    const router = useRouter();
     const [user, setUser] = React.useState({
         email: "",
         password: "",
         username: "",  
     });
-    const onSignup = async () => {
 
+    const [buttonDisabled, setButtonDisabled] = React.useState(false);
+    const [loading, setLoading] = React.useState(false);
+    useEffect(()=>{
+        if(user.email.length >0 && user.password.length >0 && user.username.length >0){
+            setButtonDisabled(false)
+        } else {
+            setButtonDisabled(true)
+        }
+    },[user])
+
+    const onSignup = async () => {
+        try{
+            setLoading(true)
+            const response = await axios.post("/api/users/signup", user);
+            console.log("Signup response: "+response.data)
+            router.push("/login")
+        }catch(err: any){
+            console.log("Signup failed: "+err)
+            toast.error(err.message)
+        }finally{
+            setLoading(false)
+        }
     }
     return (
         <div className="flex justify-center flex-col">
-            <h1 className="text-2xl">Signup</h1>
+            <h1 className="text-2xl">{loading ? "Processing":"Signup"}</h1>
             <br />
             <label htmlFor="username">username</label>
-            <input className=""
+            <input className="text-black"
                 type="text" 
                 id="username"
                 value={user.username}
@@ -30,7 +53,7 @@ export default function SignupPage(){
             />
             <br />
             <label htmlFor="email">email</label>
-            <input className=""
+            <input className="text-black"
                 type="email" 
                 id="username"
                 value={user.email}
@@ -41,7 +64,7 @@ export default function SignupPage(){
             />
             <br />
             <label htmlFor="password">password</label>
-            <input className=""
+            <input className="text-black"
                 type="password" 
                 id="password"
                 value={user.password}
@@ -53,7 +76,7 @@ export default function SignupPage(){
             <button
                 onClick={onSignup}
             >
-                Signup Here
+                {buttonDisabled ? "No signup":"Signup"}
             </button>
             <Link
                 href="/login"
